@@ -11,6 +11,10 @@ object RuleEngine {
   case class DeviceData(deviceId: String, co2: Int)
 
   case class InsertRule(rule: RuleDescription)
+
+  case object RuleInserted
+
+  case class EventOccurred(co2: Int)
 }
 
 class RuleEngine extends Actor with ActorLogging {
@@ -25,6 +29,7 @@ class RuleEngine extends Actor with ActorLogging {
       threshold match {
         case Some(t) if co2 > t =>
           log.info("Event occurred!")
+          sender ! EventOccurred(co2)
         case Some(t) =>
           log.info(s"$co2 is not greater than $t so discard it")
         case None =>
@@ -33,5 +38,6 @@ class RuleEngine extends Actor with ActorLogging {
     case InsertRule(rule) =>
       log.info(s"add new $rule")
       map = map + (rule.deviceId -> rule.threshold)
+      sender ! RuleInserted
   }
 }
