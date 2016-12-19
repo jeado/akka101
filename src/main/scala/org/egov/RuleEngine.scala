@@ -22,6 +22,7 @@ class RuleEngine extends Actor with ActorLogging {
 
   var map: Map[String, Int] = Map[String, Int]()
 
+  log.info("Created RuleEngine!")
   override def receive: Receive = {
     case DeviceData(deviceId, co2) =>
       log.info(s"got device data $deviceId, $co2")

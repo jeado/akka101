@@ -22,3 +22,4 @@ class RuleEngineTestSpecs extends TestKit(ActorSystem()) with FlatSpecLike with 
     expectMsg(EventOccurred(2))
   }
 }
+
