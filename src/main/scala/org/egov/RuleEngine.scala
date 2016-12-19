@@ -1,7 +1,6 @@
 package org.egov
 
-import akka.actor.{Actor, ActorLogging, Props}
-import org.egov.RuleEngine.DeviceData
+import akka.actor.{Actor, ActorLogging}
 
 /**
   * Created by gojaedo on 2016. 12. 19..
@@ -16,28 +15,23 @@ object RuleEngine {
 
 class RuleEngine extends Actor with ActorLogging {
   import org.egov.RuleEngine._
+
+  var map: Map[String, Int] = Map[String, Int]()
+
   override def receive: Receive = {
-    case data@ DeviceData(deviceId, co2) =>
+    case DeviceData(deviceId, co2) =>
       log.info(s"got device data $deviceId, $co2")
-      context.child(s"threshold-$deviceId") match {
-        case Some(actorRef) =>
-          actorRef ! data
-        case None => log.info(s"can not find $deviceId rule so discard it")
+      val threshold = map.get(deviceId)
+      threshold match {
+        case Some(t) if co2 > t =>
+          log.info("Event occurred!")
+        case Some(t) =>
+          log.info(s"$co2 is not greater than $t so discard it")
+        case None =>
+          log.info(s"can not find $deviceId rule so discard it")
       }
     case InsertRule(rule) =>
-      log.info(s"create rule $rule")
-      context.actorOf(ThresholdRule.props(rule.threshold), s"threshold-${rule.deviceId}")
-
-  }
-}
-
-
-object ThresholdRule {
-  def props(threshold: Int): Props = Props(new ThresholdRule(threshold))
-}
-class ThresholdRule(threshold: Int) extends Actor with ActorLogging {
-  override def receive = {
-    case DeviceData(_, co2) =>
-      if(co2 > threshold) log.info("Event occurred!")
+      log.info(s"add new $rule")
+      map = map + (rule.deviceId -> rule.threshold)
   }
 }
