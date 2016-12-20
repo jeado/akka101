@@ -12,7 +12,7 @@ object RuleEngine {
 
   case class InsertRule(rule: RuleDescription)
 
-  case object RuleInserted
+  case class RuleInserted(deviceId: String)
 
   case class EventOccurred(co2: Int)
 }
@@ -39,6 +39,6 @@ class RuleEngine extends Actor with ActorLogging {
     case InsertRule(rule) =>
       log.info(s"add new $rule")
       map = map + (rule.deviceId -> rule.threshold)
-      sender ! RuleInserted
+      sender ! RuleInserted(rule.deviceId)
   }
 }
